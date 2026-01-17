@@ -16,26 +16,24 @@ async def autocomplete(
     """
     Find words in the trie that start with the given prefix
 
-    :param query: What to search for
-    :type query: str
-    :return: List of words that start with the given prefix, maximum of 4 words
-    :rtype: List[str]
-    :raises HTTPException: If there's an internal server error during search
-    :raises HTTPException: If the query exceeds {settings.max_query_length} characters
+    :param query: Prefix to search for
+    :return: List of matching words, up to the configured limit
+    :raises HTTPException: 400 if query exceeds max length
+    :raises HTTPException: 500 if search fails
     """
-    settings = request.app.state.settings
+    service = request.app.state.service
     query = query.strip()
 
-    if len(query) > settings.max_query_length:
+    if len(query) > service.settings.max_query_length:
         raise HTTPException(
             status_code=400,
-            detail=f"Query too long. Maximum length is {settings.max_query_length} characters."
+            detail=f"Query too long. Maximum length is {service.settings.max_query_length} characters."
         )
 
     try:
-        return request.app.state.cached_search(query.lower())
+        return service.search(query)
 
-    except Exception as e:
+    except Exception:
         logger.exception("Search failed for query: %s", query)
         raise HTTPException(
             status_code=500,

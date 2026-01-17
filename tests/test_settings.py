@@ -49,8 +49,8 @@ class TestAutocompleteLimit:
 
 
 class TestCacheToggle:
-    def test_cache_disabled_does_not_store(self, env_override):
-        """Test that cache is not used when CACHE_ENABLED=false"""
+    def test_cache_disabled_returns_none_cache_info(self, env_override):
+        """Test that cache_info returns None when CACHE_ENABLED=false"""
         env_override(CACHE_ENABLED="false")
 
         from app.api import app
@@ -58,8 +58,8 @@ class TestCacheToggle:
         with TestClient(app) as client:
             client.get("/autocomplete?query=test")
 
-            # Cache should remain empty when disabled (maxsize=0)
-            assert app.state.cached_search.cache_info().currsize == 0
+            # cache_info() returns None when caching is disabled
+            assert app.state.service.cache_info() is None
 
     def test_cache_disabled_always_searches_trie(self, env_override):
         """Test that trie search is always called when CACHE_ENABLED=false"""
@@ -69,10 +69,9 @@ class TestCacheToggle:
         from app.api import app
 
         with TestClient(app) as client:
-            # First request
             client.get("/autocomplete?query=force")
 
             # Second request - should still hit the trie, not cache
-            with patch.object(app.state.trie, "search", wraps=app.state.trie.search) as mock_search:
+            with patch.object(app.state.service._trie, "search", wraps=app.state.service._trie.search) as mock_search:
                 client.get("/autocomplete?query=force")
                 mock_search.assert_called_once()

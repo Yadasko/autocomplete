@@ -57,9 +57,9 @@ class TestAutocompleteCache:
     @pytest.fixture(autouse=True)
     def clear_cache(self):
         """Clear cache before each test"""
-        app.state.cached_search.cache_clear()
+        app.state.service.clear_cache()
         yield
-        app.state.cached_search.cache_clear()
+        app.state.service.clear_cache()
 
     @pytest.fixture
     def client(self):
@@ -83,7 +83,7 @@ class TestAutocompleteCache:
         client.get("/autocomplete?query=luke")
 
         # Patch trie.search to track if it's called again
-        with patch.object(app.state.trie, "search") as mock_search:
+        with patch.object(app.state.service._trie, "search") as mock_search:
             response = client.get("/autocomplete?query=luke")
 
             assert response.status_code == 200
@@ -92,18 +92,18 @@ class TestAutocompleteCache:
     def test_cache_stores_query_after_search(self, client):
         """Test that query is stored in cache after search"""
 
-        initial_size = app.state.cached_search.cache_info().currsize
+        initial_size = app.state.service.cache_info().currsize
 
         client.get("/autocomplete?query=vader")
 
-        assert app.state.cached_search.cache_info().currsize == initial_size + 1
+        assert app.state.service.cache_info().currsize == initial_size + 1
 
     def test_different_queries_cached_separately(self, client):
         """Test that different queries are cached separately"""
 
-        initial_size = app.state.cached_search.cache_info().currsize
+        initial_size = app.state.service.cache_info().currsize
 
         client.get("/autocomplete?query=sky")
         client.get("/autocomplete?query=dark")
 
-        assert app.state.cached_search.cache_info().currsize >= initial_size + 2
+        assert app.state.service.cache_info().currsize >= initial_size + 2
