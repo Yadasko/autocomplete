@@ -1,8 +1,10 @@
-from typing import List
+from typing import Dict, List
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
 router = APIRouter(tags=["autocomplete"])
+
+_cache: Dict[str, List[str]] = {}
 
 
 @router.get("/autocomplete", response_model=List[str])
@@ -28,8 +30,13 @@ async def autocomplete(
             detail="Query too long. Maximum length is 50 characters."
         )
 
+    if query in _cache:
+        return _cache[query]
+
     try:
-        return request.app.state.trie.search(query, limit=4)
+        results = request.app.state.trie.search(query, limit=4)
+        _cache[query] = results
+        return results
 
     except Exception as e:
         raise HTTPException(
