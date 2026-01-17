@@ -81,7 +81,7 @@ class Trie:
             if len(results) >= limit:
                 return
             
-        for char in node.children.keys():
+        for char in sorted(node.children.keys()):
             self.dfs_collect(
                 node.children[char],
                 current_word + char,
