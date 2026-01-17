@@ -123,6 +123,62 @@ class TestTrie:
         results = trie.search("a")
         assert results == ["apple"]
 
+    def test_unicode_characters(self):
+        """Test that trie handles unicode characters correctly"""
 
+        words = ["café", "naïve", "résumé", "coöperate"]
 
+        trie = Trie()
+        for word in words:
+            trie.insert(word)
 
+        results = trie.search("caf")
+        assert "café" in results
+
+        results = trie.search("naï")
+        assert "naïve" in results
+
+        results = trie.search("rés")
+        assert "résumé" in results
+
+    def test_special_characters(self):
+        """Test that trie handles special characters like hyphens and dots"""
+
+        words = ["hello-world", "hello.world", "self-aware", "e.g."]
+
+        trie = Trie()
+        for word in words:
+            trie.insert(word)
+
+        results = trie.search("hello-")
+        assert "hello-world" in results
+
+        results = trie.search("hello.")
+        assert "hello.world" in results
+
+        results = trie.search("self-")
+        assert "self-aware" in results
+
+        results = trie.search("e.")
+        assert "e.g." in results
+
+    def test_numbers_in_words(self):
+        """Test that trie handles words containing numbers"""
+
+        words = ["test123", "3com", "mp3", "21st"]
+
+        trie = Trie()
+        for word in words:
+            trie.insert(word)
+
+        results = trie.search("test1")
+        assert "test123" in results
+
+        results = trie.search("3")
+        assert "3com" in results
+
+        results = trie.search("mp")
+        assert "mp3" in results
+
+        results = trie.search("21")
+        assert "21st" in results

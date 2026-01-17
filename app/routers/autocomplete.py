@@ -1,6 +1,9 @@
+import logging
 from typing import Dict, List
 
 from fastapi import APIRouter, HTTPException, Query, Request
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["autocomplete"])
 
@@ -22,23 +25,27 @@ async def autocomplete(
     :raises HTTPException: If there's an internal server error during search
     :raises HTTPException: If the query exceeds 50 characters
     """
+    settings = request.app.state.settings
     query = query.strip()
 
-    if len(query) > 50:
+    if len(query) > settings.max_query_length:
         raise HTTPException(
             status_code=400,
-            detail="Query too long. Maximum length is 50 characters."
+            detail=f"Query too long. Maximum length is {settings.max_query_length} characters."
         )
 
-    if query in _cache:
-        return _cache[query]
+    cache_key = query.lower()
+    if settings.cache_enabled and cache_key in _cache:
+        return _cache[cache_key]
 
     try:
-        results = request.app.state.trie.search(query, limit=4)
-        _cache[query] = results
+        results = request.app.state.trie.search(query, limit=settings.autocomplete_limit)
+        if settings.cache_enabled:
+            _cache[cache_key] = results
         return results
 
     except Exception as e:
+        logger.exception("Search failed for query: %s", query)
         raise HTTPException(
             status_code=500,
             detail="Internal server error during search. Please try again later."

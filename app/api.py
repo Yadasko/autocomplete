@@ -9,6 +9,7 @@ from fastapi.concurrency import asynccontextmanager
 from app.trie import Trie
 from app.loader import load_dictionary
 from app.routers import autocomplete as autocomplete_router
+from app.settings import Settings
 
 BASE_DIR = Path(__file__).parent.parent
 
@@ -23,14 +24,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
     Load dictionary into Trie on application startup with proper error handling
 
-    Raises:
-        RuntimeError: If dictionary cannot be loaded or has no valid words
+    :raises RuntimeError: If dictionary cannot be loaded or has no valid words
     """
+    settings = Settings()
     trie = Trie()
 
     try:
         start_time = time.time()
-        words = load_dictionary(BASE_DIR / "resources/dictionnaries/starwars_8k_2018.txt")
+        words = load_dictionary(BASE_DIR / settings.dictionary_path)
 
         for word in words:
             trie.insert(word)
@@ -39,12 +40,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info(f"Trie built successfully in {load_time:.2f}s")
 
     except FileNotFoundError as e:
-        raise RuntimeError(f"Failed to load dictionary file: ") from e
+        raise RuntimeError(f"Failed to load dictionary file: {settings.dictionary_path}") from e
     except ValueError as e:
         raise RuntimeError(f"Configuration or dictionary validation failed: {e}") from e
     except Exception as e:
         raise RuntimeError(f"Service initialization failed: {e}") from e
 
+    app.state.settings = settings
     app.state.trie = trie
     yield
 

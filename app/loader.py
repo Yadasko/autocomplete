@@ -22,7 +22,7 @@ def load_dictionary(file_path: Path) -> List[str]:
     words: List[str] = []
     
     with open(file_path, "r", encoding="utf-8") as f:
-        for _, line in enumerate(f, start=1):
+        for line in f:
             line = line.strip()
             if not line:
                 continue
