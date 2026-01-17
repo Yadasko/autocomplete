@@ -82,6 +82,11 @@ class Trie:
                 return
             
         for char in sorted(node.children.keys()):
+
+            # Avoid unnecessary traversal if limit is reached
+            if len(results) >= limit:
+                break
+
             self.dfs_collect(
                 node.children[char],
                 current_word + char,
