@@ -6,6 +6,7 @@ import pytest
 os.environ.setdefault("DICTIONARY_PATH", "resources/dictionaries/starwars_8k_2018.txt")
 os.environ.setdefault("AUTOCOMPLETE_LIMIT", "4")
 os.environ.setdefault("CACHE_ENABLED", "true")
+os.environ.setdefault("CACHE_MAX_SIZE", "128")
 
 
 @pytest.fixture

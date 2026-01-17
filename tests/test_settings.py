@@ -15,6 +15,7 @@ class TestSettingsLoading:
         assert settings.dictionary_path == "resources/dictionaries/starwars_8k_2018.txt"
         assert settings.autocomplete_limit == 4
         assert settings.cache_enabled is True
+        assert settings.cache_max_size == 128
 
     def test_settings_from_environment(self):
         """Test that settings can be overridden via environment variables"""
@@ -53,34 +54,25 @@ class TestCacheToggle:
         env_override(CACHE_ENABLED="false")
 
         from app.api import app
-        from app.routers import autocomplete as autocomplete_module
-
-        autocomplete_module._cache.clear()
 
         with TestClient(app) as client:
             client.get("/autocomplete?query=test")
 
-            # Cache should remain empty when disabled
-            assert "test" not in autocomplete_module._cache
+            # Cache should remain empty when disabled (maxsize=0)
+            assert app.state.cached_search.cache_info().currsize == 0
 
-        autocomplete_module._cache.clear()
-
-    def test_cache_disabled_does_not_return_cached(self, env_override):
-        """Test that cache lookup is skipped when CACHE_ENABLED=false"""
+    def test_cache_disabled_always_searches_trie(self, env_override):
+        """Test that trie search is always called when CACHE_ENABLED=false"""
         env_override(CACHE_ENABLED="false")
 
+        from unittest.mock import patch
         from app.api import app
-        from app.routers import autocomplete as autocomplete_module
-
-        # Pre-populate cache
-        autocomplete_module._cache["force"] = ["cached_result"]
 
         with TestClient(app) as client:
-            response = client.get("/autocomplete?query=force")
+            # First request
+            client.get("/autocomplete?query=force")
 
-            assert response.status_code == 200
-            data = response.json()
-            # Should NOT return the cached value, but actual trie results
-            assert data != ["cached_result"]
-
-        autocomplete_module._cache.clear()
+            # Second request - should still hit the trie, not cache
+            with patch.object(app.state.trie, "search", wraps=app.state.trie.search) as mock_search:
+                client.get("/autocomplete?query=force")
+                mock_search.assert_called_once()

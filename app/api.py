@@ -1,5 +1,6 @@
 import time
 import logging
+from functools import lru_cache
 
 from pathlib import Path
 from typing import AsyncIterator
@@ -48,6 +49,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     app.state.settings = settings
     app.state.trie = trie
+
+    @lru_cache(maxsize=settings.cache_max_size if settings.cache_enabled else 0)
+    def cached_search(query: str) -> list:
+        return trie.search(query, limit=settings.autocomplete_limit)
+
+    app.state.cached_search = cached_search
     yield
 
 

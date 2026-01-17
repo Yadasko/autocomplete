@@ -4,7 +4,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api import app
-from app.routers import autocomplete as autocomplete_module
 
 @pytest.fixture(scope="module")
 def client():
@@ -58,9 +57,9 @@ class TestAutocompleteCache:
     @pytest.fixture(autouse=True)
     def clear_cache(self):
         """Clear cache before each test"""
-        autocomplete_module._cache.clear()
+        app.state.cached_search.cache_clear()
         yield
-        autocomplete_module._cache.clear()
+        app.state.cached_search.cache_clear()
 
     @pytest.fixture
     def client(self):
@@ -93,18 +92,18 @@ class TestAutocompleteCache:
     def test_cache_stores_query_after_search(self, client):
         """Test that query is stored in cache after search"""
 
-        assert "vader" not in autocomplete_module._cache
+        initial_size = app.state.cached_search.cache_info().currsize
 
         client.get("/autocomplete?query=vader")
 
-        assert "vader" in autocomplete_module._cache
+        assert app.state.cached_search.cache_info().currsize == initial_size + 1
 
     def test_different_queries_cached_separately(self, client):
         """Test that different queries are cached separately"""
 
+        initial_size = app.state.cached_search.cache_info().currsize
+
         client.get("/autocomplete?query=sky")
         client.get("/autocomplete?query=dark")
 
-        assert "sky" in autocomplete_module._cache
-        assert "dark" in autocomplete_module._cache
-        assert autocomplete_module._cache["sky"] != autocomplete_module._cache["dark"]
+        assert app.state.cached_search.cache_info().currsize >= initial_size + 2
