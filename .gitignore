@@ -26,3 +26,6 @@ ENV/
 
 # Testing
 .pytest_cache/
+
+# Bruno rest files
+BRUNO/
