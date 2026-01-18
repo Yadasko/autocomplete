@@ -2,18 +2,29 @@ from typing import Dict, List
 
 DEFAULT_SEARCH_LIMIT = 4
 
-
 class TrieNode:
+    """A single node in the trie structure
+
+    :ivar children: Mapping of characters to child nodes
+    :ivar is_end_of_word: Whether this node marks the end of a valid word
+    """
+
     def __init__(self) -> None:
         self.children: Dict[str, 'TrieNode'] = {}
         self.is_end_of_word: bool = False
 
 
 class Trie:
+    """A trie (prefix tree) data structure for efficient prefix-based word lookup"""
+
     def __init__(self) -> None:
         self.root = TrieNode()
 
     def insert(self, word: str) -> None:
+        """Insert a word into the trie
+
+        :param word: The word to insert (will be lowercased)
+        """
         node = self.root
         word = word.lower()
     
@@ -26,20 +37,12 @@ class Trie:
 
 
     def search(self, prefix: str, limit: int = DEFAULT_SEARCH_LIMIT) -> List[str]:
-        """
-        Find words in the trie that start with the given prefix
-        
-        :param prefix: What to search for
-        :type prefix: str
-        :param limit: How many results to return
-        :type limit: int
-        :return: List of words that start with the given prefix, maximum of 'limit' words
-        :rtype: List[str]
-        """
+        """Find words in the trie that start with the given prefix
 
-        # Empty prefix returns no results
-        # We could return first 'x' words in the trie
-        # if desired
+        :param prefix: The prefix to search for (will be lowercased)
+        :param limit: Maximum number of results to return
+        :return: List of matching words in alphabetical order, up to ``limit`` results
+        """
         if not prefix:
             return []
         
@@ -64,17 +67,12 @@ class Trie:
             results: List[str],
             limit: int
         ) -> None:
-        """
-        DFS traversal 
-        
-        :param node: Current trie node
-        :type node: TrieNode
-        :param current_word: Word built so far 
-        :type current_word: str
-        :param results: Output list to append matching words
-        :type results: List[str]
+        """Collect words via depth-first traversal from the given node
+
+        :param node: Current trie node to traverse from
+        :param current_word: The word prefix built so far
+        :param results: Output list to append matching words to
         :param limit: Maximum number of results to collect
-        :type limit: int
         """
 
         if len(results) >= limit:
@@ -93,7 +91,7 @@ class Trie:
 
             self._dfs_collect(
                 node.children[char],
-                current_word + char,
+                current_word + char, # This will create a new string object for every call. Could be optimized with a list and join if needed
                 results,
                 limit
             )

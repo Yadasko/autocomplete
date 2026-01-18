@@ -35,6 +35,14 @@ class TestAutocompleteAPI:
         assert len(data) == 4
         assert "apparently" in data
 
+    def test_query_whitespace_only_returns_400(self, client):
+        """Test that whitespace-only query returns 400 after stripping"""
+
+        response = client.get("/autocomplete?query=   ")
+
+        assert response.status_code == 400
+        assert "empty" in response.json()["detail"].lower()
+
     def test_query_too_long_returns_400(self, client):
         """Test that query exceeding 50 characters returns 400"""
 

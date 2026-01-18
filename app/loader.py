@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-
 @dataclass
 class DictionaryResult:
     """
@@ -16,16 +15,15 @@ class DictionaryResult:
 
 
 def load_dictionary(file_path: Path) -> DictionaryResult:
-    """
-    Load dictionary from file.
-    Expected file format: Each line contains "XXXXX word"
-    where XXXXX is a numbering scheme (can be ignored) and word is the actual word.
-    (Format taken from eff wordlists, with the introduction removed)
+    """Load dictionary from file
 
-    :param file_path: Path to the dictionary file
-    :type file_path: Path
-    :return: DictionaryResult containing words and count of skipped lines
-    :rtype: DictionaryResult
+    Expected file format: Each line contains "XXXXX word" where XXXXX is a
+    numbering scheme (ignored) and word is the actual word.
+
+    :param file_path: Path to the dictionary file.
+    :return: DictionaryResult containing words and count of skipped lines.
+    :raises FileNotFoundError: If the dictionary file does not exist.
+    :raises ValueError: If no valid words are found in the file.
     """
 
     if not file_path.exists():

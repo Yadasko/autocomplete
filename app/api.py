@@ -14,13 +14,15 @@ BASE_DIR = Path(__file__).parent.parent
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Initialize the autocomplete service on application startup"""
+    """Initialize the autocomplete service on application startup
+
+    :raises RuntimeError: If dictionary file is not found or contains no valid words
+    """
     try:
         service = TrieService(BASE_DIR)
-    except FileNotFoundError as e:
+    except (FileNotFoundError, ValueError) as e:
         raise RuntimeError(f"Failed to load dictionary: {e}") from e
 
     app.state.service = service
@@ -30,7 +32,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(
     title="Autocomplete Service",
     description="Trie-based autocomplete API",
-    lifespan=lifespan,
+    lifespan=lifespan
 )
 
 app.include_router(autocomplete_router.router)
@@ -38,10 +40,10 @@ app.include_router(autocomplete_router.router)
 
 @app.get("/health")
 async def health(request: Request) -> JSONResponse:
-    """Health check endpoint for orchestration purposes.
+    """Health check endpoint for orchestration purposes
 
-    Returns 200 when the server is ready and the dictionary is loaded.
-    Returns 503 if the service is not ready.
+    :param request: FastAPI request object
+    :return: JSON response with status "healthy" (200) or "unhealthy" (503)
     """
     if hasattr(request.app.state, "service") and request.app.state.service is not None:
         return JSONResponse(status_code=200, content={"status": "healthy"})
