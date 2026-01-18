@@ -8,7 +8,6 @@ from fastapi.concurrency import asynccontextmanager
 
 from app.routers import autocomplete as autocomplete_router
 from app.service import TrieService
-from app.settings import Settings
 
 BASE_DIR = Path(__file__).parent.parent
 
@@ -19,14 +18,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Initialize the autocomplete service on application startup"""
-    settings = Settings()
-
     try:
-        service = TrieService(settings, BASE_DIR)
+        service = TrieService(BASE_DIR)
     except FileNotFoundError as e:
         raise RuntimeError(f"Failed to load dictionary: {e}") from e
-    except ValueError as e:
-        raise RuntimeError(f"Configuration validation failed: {e}") from e
 
     app.state.service = service
     yield

@@ -3,6 +3,8 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+MAX_QUERY_LENGTH = 50
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["autocomplete"])
@@ -24,10 +26,10 @@ async def autocomplete(
     service = request.app.state.service
     query = query.strip()
 
-    if len(query) > service.settings.max_query_length:
+    if len(query) > MAX_QUERY_LENGTH:
         raise HTTPException(
             status_code=400,
-            detail=f"Query too long. Maximum length is {service.settings.max_query_length} characters."
+            detail=f"Query too long. Maximum length is {MAX_QUERY_LENGTH} characters."
         )
 
     try:

@@ -5,15 +5,15 @@ from typing import List
 
 from app.trie import Trie
 from app.loader import load_dictionary
-from app.settings import Settings
+
+DICTIONARY_PATH = "resources/dictionaries/starwars_8k_2018.txt"
 
 logger = logging.getLogger(__name__)
 
 class TrieService:
     """Encapsulates trie-based autocomplete functionality"""
 
-    def __init__(self, settings: Settings, base_dir: Path) -> None:
-        self._settings = settings
+    def __init__(self, base_dir: Path) -> None:
         self._trie = Trie()
         self._load_dictionary(base_dir)
 
@@ -21,7 +21,7 @@ class TrieService:
         """Load dictionary file and populate the trie"""
         start_time = time.time()
 
-        dictionary_path = base_dir / self._settings.dictionary_path
+        dictionary_path = base_dir / DICTIONARY_PATH
         result = load_dictionary(dictionary_path)
 
         for word in result.words:
@@ -37,8 +37,4 @@ class TrieService:
         :param query: The prefix to search for (will be lowercased)
         :return: List of matching words, up to the configured limit
         """
-        return self._trie.search(query, self._settings.autocomplete_limit)
-
-    @property
-    def settings(self) -> Settings:
-        return self._settings
+        return self._trie.search(query)
