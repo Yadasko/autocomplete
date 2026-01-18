@@ -1,5 +1,8 @@
 from typing import Dict, List
 
+DEFAULT_SEARCH_LIMIT = 4
+
+
 class TrieNode:
 
     def __init__(self) -> None:
@@ -23,7 +26,7 @@ class Trie:
         node.is_end_of_word = True
 
 
-    def search(self, prefix: str, limit: int = 4) -> List[str]:
+    def search(self, prefix: str, limit: int = DEFAULT_SEARCH_LIMIT) -> List[str]:
         """
         Find words in the trie that start with the given prefix
         
@@ -48,11 +51,11 @@ class Trie:
             node = node.children[char]
 
         results: List[str] = []
-        self.dfs_collect(node, prefix, results, limit)
+        self._dfs_collect(node, prefix, results, limit)
 
         return results
 
-    def dfs_collect(
+    def _dfs_collect(
             self,
             node: TrieNode,
             current_word: str,
@@ -78,9 +81,6 @@ class Trie:
         if node.is_end_of_word:
             results.append(current_word)
 
-            if len(results) >= limit:
-                return
-            
         # Sorting here may cause performance hit for large tries
         # See discussion in README.md
         for char in sorted(node.children.keys()):
@@ -89,12 +89,10 @@ class Trie:
             if len(results) >= limit:
                 break
 
-            self.dfs_collect(
+            self._dfs_collect(
                 node.children[char],
                 current_word + char,
                 results,
                 limit
             )
-
-        return
 

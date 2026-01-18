@@ -1,9 +1,21 @@
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
 
+@dataclass
+class DictionaryResult:
+    """
+    Result of loading a dictionary file
 
-def load_dictionary(file_path: Path) -> List[str]:
+    :param words: List of valid words loaded from the file
+    :param skipped_count: Number of malformed lines that were skipped
+    """
+    words: List[str]
+    skipped_count: int
+
+
+def load_dictionary(file_path: Path) -> DictionaryResult:
     """
     Load dictionary from file.
     Expected file format: Each line contains "XXXXX word"
@@ -12,15 +24,16 @@ def load_dictionary(file_path: Path) -> List[str]:
 
     :param file_path: Path to the dictionary file
     :type file_path: Path
-    :return: List of words from the dictionary
-    :rtype: List[str]
+    :return: DictionaryResult containing words and count of skipped lines
+    :rtype: DictionaryResult
     """
 
     if not file_path.exists():
         raise FileNotFoundError(f"Dictionary file not found: {file_path}")
     
     words: List[str] = []
-    
+    skipped_count = 0
+
     with open(file_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -29,7 +42,7 @@ def load_dictionary(file_path: Path) -> List[str]:
 
             parts = line.split()
             if len(parts) < 2:
-                # Skip malformed lines
+                skipped_count += 1
                 continue
 
             word = parts[-1]
@@ -38,4 +51,4 @@ def load_dictionary(file_path: Path) -> List[str]:
     if not words:
         raise ValueError(f"No valid words found in {file_path}")
 
-    return words
+    return DictionaryResult(words=words, skipped_count=skipped_count)

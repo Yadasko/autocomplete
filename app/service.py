@@ -2,7 +2,7 @@ import time
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, List, Protocol
+from typing import Any, List
 
 from app.trie import Trie
 from app.loader import load_dictionary
@@ -31,20 +31,23 @@ class TrieService:
         start_time = time.time()
 
         dictionary_path = base_dir / self._settings.dictionary_path
-        words = load_dictionary(dictionary_path)
+        result = load_dictionary(dictionary_path)
 
-        for word in words:
+        for word in result.words:
             self._trie.insert(word)
 
         load_time = time.time() - start_time
-        logger.info(f"Trie built with {len(words)} words in {load_time:.2f}s")
+        logger.info(f"Trie built with {len(result.words)} words in {load_time:.2f}s (skipped {result.skipped_count} malformed lines)")
 
     def _setup_cache(self) -> None:
         """Configure the search cache based on settings"""
         if self._settings.cache_enabled:
+            
+            limit = self._settings.autocomplete_limit
+
             @lru_cache(maxsize=self._settings.cache_max_size)
             def cached_search(query: str) -> List[str]:
-                return self._trie.search(query, limit=self._settings.autocomplete_limit)
+                return self._trie.search(query, limit)
 
             self._cached_search = cached_search
         else:
@@ -58,12 +61,10 @@ class TrieService:
         :param query: The prefix to search for (will be lowercased)
         :return: List of matching words, up to the configured limit
         """
-        normalized_query = query.lower()
-
         if self._cached_search is not None:
-            return self._cached_search(normalized_query)
+            return self._cached_search(query)
 
-        return self._trie.search(normalized_query, limit=self._settings.autocomplete_limit)
+        return self._trie.search(query, self._settings.autocomplete_limit)
 
     def clear_cache(self) -> None:
         """Clear the search cache. No-op if caching is disabled"""
