@@ -81,6 +81,8 @@ class Trie:
             if len(results) >= limit:
                 return
             
+        # Sorting here may cause performance hit for large tries
+        # See discussion in README.md
         for char in sorted(node.children.keys()):
 
             # Avoid unnecessary traversal if limit is reached
