@@ -29,3 +29,6 @@ ENV/
 
 # Bruno rest files
 BRUNO/
+
+# Environment variables files
+.env
