@@ -4,7 +4,6 @@ DEFAULT_SEARCH_LIMIT = 4
 
 
 class TrieNode:
-
     def __init__(self) -> None:
         self.children: Dict[str, 'TrieNode'] = {}
         self.is_end_of_word: bool = False
@@ -38,6 +37,9 @@ class Trie:
         :rtype: List[str]
         """
 
+        # Empty prefix returns no results
+        # We could return first 'x' words in the trie
+        # if desired
         if not prefix:
             return []
         
@@ -75,7 +77,7 @@ class Trie:
         :type limit: int
         """
 
-        if (len(results) >= limit):
+        if len(results) >= limit:
             return
         
         if node.is_end_of_word:
