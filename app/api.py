@@ -2,7 +2,8 @@ import logging
 from pathlib import Path
 from typing import AsyncIterator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.concurrency import asynccontextmanager
 
 from app.routers import autocomplete as autocomplete_router
@@ -38,3 +39,15 @@ app = FastAPI(
 )
 
 app.include_router(autocomplete_router.router)
+
+
+@app.get("/health")
+async def health(request: Request) -> JSONResponse:
+    """Health check endpoint for orchestration purposes.
+
+    Returns 200 when the server is ready and the dictionary is loaded.
+    Returns 503 if the service is not ready.
+    """
+    if hasattr(request.app.state, "service") and request.app.state.service is not None:
+        return JSONResponse(status_code=200, content={"status": "healthy"})
+    return JSONResponse(status_code=503, content={"status": "unhealthy"})

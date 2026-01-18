@@ -107,3 +107,20 @@ class TestAutocompleteCache:
         client.get("/autocomplete?query=dark")
 
         assert app.state.service.cache_info().currsize >= initial_size + 2
+
+
+class TestHealthEndpoint:
+    def test_health_returns_200_when_service_ready(self, client):
+        """Test that /health returns 200 when service is loaded"""
+        response = client.get("/health")
+
+        assert response.status_code == 200
+        assert response.json() == {"status": "healthy"}
+
+    def test_health_returns_503_when_service_not_ready(self, client):
+        """Test that /health returns 503 when service is not available"""
+        with patch.object(app.state, "service", None):
+            response = client.get("/health")
+
+        assert response.status_code == 503
+        assert response.json() == {"status": "unhealthy"}
