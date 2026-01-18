@@ -57,6 +57,11 @@ The use of the `__slots__` attributes on the children of the `Trie` could reduce
 
 While this could reduce the memory usage by some margin, it is overkill for this assignment. If the dictionnary were to expand by a lot, and profilling exposed a large memory consumption by the Trie structure, or if the app were to be running a constraint environnement (i.e a small pod in the cloud), this could be an easy way to reduce its memory footprint.
 
+### Unicode support
+Unicode has two modes: composed and decomposed. We currently don't normalize unicode data we receive. If the dictionnary inserts a `composed` unicode data and the user searches for a `decomposed` one (or vice-verse), it would not match.
+
+One fix would be to normalize to NFC each word at insertion, like so: `unicodedata.normalize('NFC', word)`. While it is good to know that this issue could happen, handling these edge-cases seems out of scope.
+
 ### Make it production ready
 This app is lacking features to be production-ready:
 - Unified logging
