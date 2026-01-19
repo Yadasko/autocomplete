@@ -10,6 +10,8 @@ A FastAPI-based autocomplete service using a Trie data structure for prefix-base
 
 ## Quick Start
 
+This project uses [uv](https://github.com/astral-sh/uv) as a project manager. It handles downloading and using the appropriate Python version (>= 3.10).
+
 ```bash
 uv sync
 uvicorn app.api:app
@@ -17,7 +19,20 @@ uvicorn app.api:app
 
 Test the API:
 ```bash
-curl "http://localhost:8000/autocomplete?query=dar"
+curl "http://localhost:8000/autocomplete?query=fac"
+```
+```json
+["face","faced","facility","facing"]
+```
+
+### Run without uv
+
+```bash
+python3 -m venv .venv
+# Use the venv - different on Linux, macOS and Windows
+source .venv/bin/activate
+pip install .
+uvicorn app.api:app
 ```
 
 ## API Endpoints
