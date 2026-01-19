@@ -35,6 +35,12 @@ pip install .
 uvicorn app.api:app
 ```
 
+### Listen on interface
+By default, the webservers listens on the local loop (127.0.0.1). If it is deployed on a distant server, you will need to define what interface to listen on. You can also set the port.
+```bash
+uvicorn --host SERVER_IP_OR_DOMAIN --port XXXX app.api:app
+```
+
 ## API Endpoints
 
 | Endpoint | Method | Description |
